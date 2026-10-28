@@ -59,7 +59,8 @@ git clone https://github.com/LeeRuMax/huiltje.git && cd huiltje
 jouw eigen build en hij kan niet over de officiële app heen updaten (en andersom). Met een eigen sleutel:
 `-PhuiltjeKeystore=/pad/naar.keystore -PhuiltjeWachtwoordBestand=/pad/naar/wachtwoord` (alias `huiltje`).
 
-De tests draaien op de JVM met Robolectric: de logica (timers, kanten, voorkennis), echte SQLite, twee "telefoons"
+Elke push en pull request wordt op GitHub gebouwd en getest (Actions → *bouwen*); de debug-APK en de
+schermafdrukken staan daar als download. De tests draaien op de JVM met Robolectric: de logica (timers, kanten, voorkennis), echte SQLite, twee "telefoons"
 die over een socket bijwerken, backup heen en terug, en `SchermTest` rendert de schermen naar
 `app/build/schermen/*.png` zodat je ze zonder telefoon kunt bekijken.
 
