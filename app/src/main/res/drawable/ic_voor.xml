@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Geluidsgolfjes in de veilige zone (66 dp) van een adaptief icoon. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FF7A2E55" android:pathData="M40,46h4v16h-4z M48,38h4v32h-4z M56,42h4v24h-4z M64,48h4v12h-4z" />
+</vector>

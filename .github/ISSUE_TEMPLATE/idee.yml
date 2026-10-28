@@ -1,0 +1,15 @@
+name: Idee
+description: Iets wat de app handiger of slimmer zou maken
+labels: [idee]
+body:
+  - type: textarea
+    id: wat
+    attributes:
+      label: Wat zou je willen?
+      description: Beschrijf het vanuit de situatie, bijv. "om 3 uur 's nachts wil ik …"
+    validations:
+      required: true
+  - type: textarea
+    id: waarom
+    attributes:
+      label: Waarom helpt dat?

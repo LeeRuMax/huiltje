@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@drawable/widget_achter" android:orientation="vertical" android:padding="8dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical"
+        android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="6dp">
+        <TextView android:id="@+id/titel" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="🍼 Laatste voeding" android:textColor="#FF4A3B42" android:textSize="14sp" />
+        <Chronometer android:id="@+id/klok" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginStart="8dp" android:textColor="#FF4A3B42" android:textSize="18sp" android:textStyle="bold" />
+    </LinearLayout>
+    <TextView android:id="@+id/sub" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingStart="6dp" android:text="" android:textColor="#FF7A6870" android:textSize="12sp" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
+        <TextView android:id="@+id/L" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:layout_margin="3dp" android:background="@drawable/knop" android:gravity="center" android:text="🤱 L"
+            android:textColor="#FF4A3B42" android:textSize="15sp" />
+        <TextView android:id="@+id/R" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:layout_margin="3dp" android:background="@drawable/knop" android:gravity="center" android:text="🤱 R"
+            android:textColor="#FF4A3B42" android:textSize="15sp" />
+        <TextView android:id="@+id/fles" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:layout_margin="3dp" android:background="@drawable/knop" android:gravity="center" android:text="🍼 Fles"
+            android:textColor="#FF4A3B42" android:textSize="15sp" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
+        <TextView android:id="@+id/nat" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:layout_margin="3dp" android:background="@drawable/knop" android:gravity="center" android:text="💧 Nat"
+            android:textColor="#FF4A3B42" android:textSize="15sp" />
+        <TextView android:id="@+id/poep" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:layout_margin="3dp" android:background="@drawable/knop" android:gravity="center" android:text="💩 Poep"
+            android:textColor="#FF4A3B42" android:textSize="15sp" />
+        <TextView android:id="@+id/slaap" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:layout_margin="3dp" android:background="@drawable/knop" android:gravity="center" android:text="😴 Slaapt"
+            android:textColor="#FF4A3B42" android:textSize="15sp" />
+    </LinearLayout>
+</LinearLayout>

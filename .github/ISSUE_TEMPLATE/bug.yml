@@ -1,0 +1,31 @@
+name: Bug melden
+description: Iets werkt niet zoals het hoort
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "**Zet hier geen opnames, foto's of gegevens van je kind.** Een beveiligingsprobleem? Meld het via SECURITY.md, niet hier."
+  - type: textarea
+    id: wat
+    attributes:
+      label: Wat ging er mis?
+      description: Wat deed je, wat verwachtte je, en wat gebeurde er?
+    validations:
+      required: true
+  - type: textarea
+    id: stappen
+    attributes:
+      label: Hoe krijg ik het ook?
+      placeholder: "1. Open Vandaag\n2. Tik op …\n3. …"
+  - type: input
+    id: versie
+    attributes:
+      label: Versie van Huiltje
+      description: Staat onder ☰ Meer → Over
+    validations:
+      required: true
+  - type: input
+    id: telefoon
+    attributes:
+      label: Telefoon en Android-versie
+      placeholder: "bijv. Samsung S25, Android 15"

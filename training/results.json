@@ -1,0 +1,97 @@
+{
+ "clips_in_model": 1214,
+ "per_klasse": {
+  "neh": 145,
+  "owh": 640,
+  "heh": 111,
+  "eairh": 110,
+  "eh": 208
+ },
+ "5-voudig binnen de verzamelde clips (te rooskleurig: zelfde baby kan in train en test zitten)": {
+  "gebalanceerde_acc": 0.616,
+  "macro_f1": 0.587
+ },
+ "train tier 2 -> test tier 1 (andere bron, andere baby's)": {
+  "gebalanceerde_acc": 0.752,
+  "macro_f1": 0.75,
+  "confusie (rij=echt, kolom=voorspeld, neh/owh/heh/eairh/eh)": [
+   [
+    55,
+    4,
+    3,
+    4,
+    6
+   ],
+   [
+    3,
+    54,
+    5,
+    8,
+    6
+   ],
+   [
+    2,
+    1,
+    48,
+    1,
+    5
+   ],
+   [
+    5,
+    11,
+    1,
+    40,
+    3
+   ],
+   [
+    3,
+    2,
+    8,
+    3,
+    56
+   ]
+  ]
+ },
+ "train tier 1 -> test tier 2 (andere bron, andere baby's)": {
+  "gebalanceerde_acc": 0.583,
+  "macro_f1": 0.496,
+  "confusie (rij=echt, kolom=voorspeld, neh/owh/heh/eairh/eh)": [
+   [
+    93,
+    9,
+    19,
+    16,
+    8
+   ],
+   [
+    57,
+    251,
+    90,
+    210,
+    32
+   ],
+   [
+    9,
+    7,
+    76,
+    8,
+    11
+   ],
+   [
+    7,
+    13,
+    17,
+    70,
+    3
+   ],
+   [
+    15,
+    26,
+    34,
+    16,
+    117
+   ]
+  ]
+ },
+ "kans (altijd de grootste klasse)": 0.2
+}
