@@ -96,6 +96,30 @@ object Bericht {
     fun maak(sleutel: ByteArray, o: JSONObject, nu: Long = System.currentTimeMillis()): String =
         Base64.getUrlEncoder().withoutPadding().encodeToString(Kanaal.dicht(sleutel, o.put("ts", nu)))
 
+    /** ntfy maakt van berichten > 4096 bytes een bijlage; een offer met alle codecs is groter → in stukken sturen. */
+    fun knip(tekst: String, max: Int = 3500): List<String> {
+        if (tekst.length <= max) return listOf(tekst)
+        val id = java.util.UUID.randomUUID().toString().take(8)
+        val stukken = tekst.chunked(max)
+        return stukken.mapIndexed { i, d -> "~$id~$i~${stukken.size}~$d" }
+    }
+
+    /** Stuk binnen: geeft het hele bericht terug zodra alle stukken er zijn (anders null). */
+    fun plak(deel: String, buf: MutableMap<String, Array<String?>>): String? {
+        if (!deel.startsWith("~")) return deel
+        val p = deel.split('~', limit = 5)
+        if (p.size != 5) return null
+        val n = p[3].toIntOrNull()?.takeIf { it in 1..20 } ?: return null
+        val i = p[2].toIntOrNull()?.takeIf { it in 0 until n } ?: return null
+        if (buf.size > 20) buf.clear() // ponytail: simpele grens tegen half aangekomen rommel
+        val a = buf.getOrPut(p[1]) { arrayOfNulls(n) }
+        if (a.size != n) return null
+        a[i] = p[4]
+        if (a.any { it == null }) return null
+        buf.remove(p[1])
+        return a.joinToString("")
+    }
+
     /** Null als het niet van een partner is, te oud, van mezelf, of voor een andere telefoon. */
     fun lees(sleutel: ByteArray, tekst: String, ik: String, nu: Long = System.currentTimeMillis()): JSONObject? {
         val o = runCatching { Kanaal.open(sleutel, Base64.getUrlDecoder().decode(tekst.trim())) }.getOrNull() ?: return null
@@ -290,6 +314,7 @@ abstract class Rol {
     protected lateinit var server: Server
     protected lateinit var sleutel: ByteArray
     private lateinit var ntfy: Ntfy
+    private val stukken = mutableMapOf<String, Array<String?>>()
     val status = MutableStateFlow("")
 
     /** Null = gestart, anders de reden waarom niet. */
@@ -301,12 +326,17 @@ abstract class Rol {
         ntfy = Ntfy(server, Bericht.topic(sleutel))
         Rtc.init(app)
         actief = true
-        Thread({ ntfy.luister({ !actief }) { t -> Bericht.lees(sleutel, t, db.dev)?.let { o -> werk.execute { runCatching { ontvang(o) } } } } }, "babyfoon-ntfy").start()
+        Thread({
+            ntfy.luister({ !actief }) { t ->
+                val heel = synchronized(stukken) { Bericht.plak(t, stukken) } ?: return@luister
+                Bericht.lees(sleutel, heel, db.dev)?.let { o -> werk.execute { runCatching { ontvang(o) }.onFailure { e -> status.value = "Fout: ${e.message}" } } }
+            }
+        }, "babyfoon-ntfy").start()
         return null
     }
 
     protected fun zend(o: JSONObject) = werk.execute {
-        runCatching { ntfy.stuur(Bericht.maak(sleutel, o.put("van", db.dev).put("naam", db.mijnNaam ?: ""))) }
+        runCatching { Bericht.knip(Bericht.maak(sleutel, o.put("van", db.dev).put("naam", db.mijnNaam ?: ""))).forEach { ntfy.stuur(it) } }
             .onFailure { status.value = "Server niet bereikbaar (${server.ntfy}): ${it.message}" }
     }
 
@@ -427,6 +457,7 @@ object Kijker : Rol(), Verbinding.Bij {
     private var mic: AudioTrack? = null
     private var babyGeluid: AudioTrack? = null
     private var camera = ""
+    @Volatile private var laatsteOffer = 0L
     private var luidSinds = 0L
     private var laatsteMelding = 0L
 
@@ -442,11 +473,14 @@ object Kijker : Rol(), Verbinding.Bij {
     }
 
     private fun zoek() {
-        zend(JSONObject().put("t", "wil-kijken"))
-        // Geen antwoord of verbinding weggevallen: over 15 s opnieuw.
+        if (System.currentTimeMillis() - laatsteOffer > 30_000) zend(JSONObject().put("t", "wil-kijken"))
+        // Geen antwoord of verbinding weggevallen: over 20 s opnieuw (niet terwijl een verbinding nog wordt opgebouwd).
         Thread {
-            Thread.sleep(15_000)
-            if (actief && !verbonden.value) { status.value = "Geen camera gevonden. Staat er een telefoon op 📷 Camera?"; zoek() }
+            Thread.sleep(20_000)
+            if (actief && !verbonden.value && System.currentTimeMillis() - laatsteOffer > 30_000) {
+                status.value = "Geen camera gevonden. Staat er een telefoon op 📷 Camera?"
+                zoek()
+            } else if (actief && !verbonden.value) zoek()
         }.start()
     }
 
@@ -474,7 +508,7 @@ object Kijker : Rol(), Verbinding.Bij {
         BabyfoonService.stop(app)
     }
 
-    private fun zendDirect(o: JSONObject) = runCatching { Ntfy(server, Bericht.topic(sleutel)).stuur(Bericht.maak(sleutel, o.put("van", db.dev))) }
+    private fun zendDirect(o: JSONObject) = runCatching { Bericht.knip(Bericht.maak(sleutel, o.put("van", db.dev))).forEach { Ntfy(server, Bericht.topic(sleutel)).stuur(it) } }
 
     override fun ontvang(o: JSONObject) {
         if (!actief || o.optString("t") != "offer") {
@@ -482,6 +516,7 @@ object Kijker : Rol(), Verbinding.Bij {
             return
         }
         if (verbonden.value) return // al met een camera verbonden
+        laatsteOffer = System.currentTimeMillis()
         v?.sluit()
         camera = o.optString("naam").ifBlank { "partner" }
         val nieuw = Verbinding(server, o.getString("van"), this)
@@ -531,7 +566,13 @@ object Kijker : Rol(), Verbinding.Bij {
     override fun toestand(v: Verbinding, s: PeerConnection.PeerConnectionState) {
         when (s) {
             PeerConnection.PeerConnectionState.CONNECTED -> { verbonden.value = true; status.value = "📷 Camera van $camera" }
+            PeerConnection.PeerConnectionState.CONNECTING -> status.value = "Verbinden met de camera van $camera (beeld en geluid)…"
             PeerConnection.PeerConnectionState.FAILED, PeerConnection.PeerConnectionState.DISCONNECTED, PeerConnection.PeerConnectionState.CLOSED -> {
+                if (this.v === v && !verbonden.value && s == PeerConnection.PeerConnectionState.FAILED) {
+                    status.value = if (server.turn.isBlank()) "Geen rechtstreekse verbinding en geen relay ingesteld (Meer → 📡 Babyfoon-server)."
+                    else "Verbinding mislukt, ook via de relay. Opnieuw proberen…"
+                    laatsteOffer = 0
+                }
                 if (this.v === v && verbonden.value) {
                     verbonden.value = false
                     beeld.value = null

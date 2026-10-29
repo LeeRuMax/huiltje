@@ -42,6 +42,23 @@ class BabyfoonTest {
     }
 
     @Test
+    fun grootBerichtInStukkenEnWeerHeel() {
+        // Echte offers bevatten willekeurige sleutels en ssrc's en comprimeren slecht: simuleer met willekeur.
+        val rnd = java.util.Random(1)
+        val sdp = buildString { repeat(400) { append("a=x-${rnd.nextLong()}:${rnd.nextLong()}\r\n") } }
+        val heel = Bericht.maak(k, JSONObject().put("t", "offer").put("van", "camera").put("naar", "kijker").put("sdp", sdp), t0)
+        assertTrue("moet groter zijn dan één ntfy-bericht", heel.length > 4096)
+        val delen = Bericht.knip(heel)
+        assertTrue(delen.size > 1 && delen.all { it.length <= 4096 })
+        val buf = mutableMapOf<String, Array<String?>>()
+        val terug = delen.shuffled(rnd).mapNotNull { Bericht.plak(it, buf) }
+        assertEquals(1, terug.size)
+        assertEquals(sdp, Bericht.lees(k, terug.single(), "kijker", t0)!!.getString("sdp"))
+        assertEquals("klein", Bericht.plak("klein", buf))
+        assertNull(Bericht.plak("~kapot", buf))
+    }
+
+    @Test
     fun naar16kHz() {
         val pcm = ShortArray(48_000) { (it % 100).toShort() }
         assertEquals(16_000, naar16k(pcm, 48_000).size)

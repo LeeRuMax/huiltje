@@ -12,8 +12,8 @@ android {
         applicationId = "io.github.leerumax.huiltje"
         minSdk = 26
         targetSdk = 35
-        versionCode = 8
-        versionName = "0.5.0"
+        versionCode = 9
+        versionName = "0.5.1"
         // Alleen arm64: alle gangbare telefoons; scheelt de TFLite-bibliotheken voor drie andere ABI's.
         ndk { abiFilters += "arm64-v8a" }
     }
