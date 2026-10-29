@@ -12,8 +12,8 @@ android {
         applicationId = "io.github.leerumax.huiltje"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.4.0"
+        versionCode = 8
+        versionName = "0.5.0"
         // Alleen arm64: alle gangbare telefoons; scheelt de TFLite-bibliotheken voor drie andere ABI's.
         ndk { abiFilters += "arm64-v8a" }
     }
@@ -41,6 +41,8 @@ android {
 
     buildFeatures { compose = true }
     androidResources { noCompress += "tflite" }
+    // Gecomprimeerde .so's: APK ±10 MB kleiner (WebRTC); Android pakt ze bij installatie uit.
+    packaging { jniLibs { useLegacyPackaging = true } }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -57,6 +59,8 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("org.tensorflow:tensorflow-lite:2.16.1")
+    // Babyfoon: WebRTC (BSD), voorgecompileerd door webrtc-sdk.
+    implementation("io.github.webrtc-sdk:android:144.7559.15")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
     // Alleen voor tests (niet in de APK): echte SQLite, sockets en schermafdrukken op de JVM.

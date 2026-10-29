@@ -310,7 +310,7 @@ fun regel(e: Ev, s: Sessie?, mij: String?, nu: Long): Regel {
 
 fun regels(evs: List<Ev>, mij: String?, nu: Long): List<Regel> {
     val ss = (sessies(evs, T.BORST) + sessies(evs, T.KOLF)).associateBy { it.ev.id }
-    return evs.filter { !it.weg && it.type != T.deel(T.BORST) && it.type != T.deel(T.KOLF) && it.type != T.BABY }
+    return evs.filter { !it.weg && it.type != T.deel(T.BORST) && it.type != T.deel(T.KOLF) && it.type != T.BABY && it.type != T.SERVER }
         .sortedByDescending { it.start }.map { regel(it, ss[it.id], mij, nu) }
 }
 

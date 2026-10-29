@@ -66,7 +66,10 @@ import java.util.zip.ZipOutputStream
 /** Een pagina uit het Meer-menu: een log-onderdeel, of een instelling/info met eigen inhoud. */
 class Pagina(val titel: String, val onderdeel: Onderdeel? = null, val inhoud: @Composable (Db, List<Ev>, Melder) -> Unit = { _, _, _ -> })
 
+val BABYFOON = Pagina("📷 Babyfoon", inhoud = { db, evs, _ -> BabyfoonScherm(db, evs) })
+
 val INSTELLINGEN: List<Pagina> = listOf(
+    Pagina("📡 Babyfoon-server", inhoud = { db, evs, _ -> ServerKaart(db, evs) }),
     Pagina("👶 Baby en jij", inhoud = { db, evs, _ -> BabyKaart(db, evs) }),
     Pagina("⏰ Herinneringen", inhoud = { db, evs, _ -> HerinneringKaart(db, evs) }),
     Pagina("📅 Afspraken", inhoud = { db, evs, _ -> AfsprakenKaart(db, evs, System.currentTimeMillis()) }),
@@ -83,6 +86,8 @@ val INSTELLINGEN: List<Pagina> = listOf(
 @Composable
 fun MeerMenu(open: (Pagina) -> Unit) {
     Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp).verticalScroll(rememberScrollState())) {
+        Button(onClick = { open(BABYFOON) }, modifier = Modifier.fillMaxWidth().height(56.dp), colors = zacht()) { Text("📷 Babyfoon", fontSize = 17.sp) }
+        Spacer(Modifier.height(12.dp))
         Kop("Loggen")
         Raster(ONDERDELEN.map { Pagina(it.titel, onderdeel = it) }, open)
         Spacer(Modifier.height(16.dp))
@@ -166,7 +171,8 @@ fun OverKaart() {
         Klein(
             "Versie ${ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName}. Alles staat op deze telefoon. " +
                 "Delen gaat alleen rechtstreeks naar de telefoon van je partner op dezelfde wifi, versleuteld met jullie " +
-                "partnercode; de app praat nooit met een server of het internet.",
+                "partnercode. Alleen de babyfoon gebruikt internet (ntfy + TURN); ook daar is alles versleuteld van " +
+                "telefoon tot telefoon.",
         )
         Spacer(Modifier.height(8.dp))
         Text("Geen medisch hulpmiddel. De herkenning is een hint, geen diagnose. Twijfel je over je baby, bel de huisarts; bij direct gevaar 112.")
@@ -438,7 +444,8 @@ object Backup {
     private val WAV = Regex("[0-9]{10,16}\\.wav")
 
     fun maak(ctx: Context, db: Db, os: OutputStream): Int {
-        val rijen = db.sinds(0).first
+        // Serverwachtwoorden (babyfoon) niet in een onversleutelde zip.
+        val rijen = db.sinds(0).first.filter { it.type != T.SERVER }
         run {
             ZipOutputStream(os).use { z ->
                 z.putNextEntry(ZipEntry("huiltje.json"))

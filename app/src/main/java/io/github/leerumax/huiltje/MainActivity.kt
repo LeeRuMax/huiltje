@@ -201,7 +201,10 @@ fun App(db: Db, verzoek: MutableState<String?>) {
         }
     }
     LaunchedEffect(verzoek.value) {
-        if (verzoek.value != null) {
+        if (verzoek.value == "babyfoon") {
+            pagina = BABYFOON
+            verzoek.value = null
+        } else if (verzoek.value != null) {
             tab = 0
             pagina = null
         }

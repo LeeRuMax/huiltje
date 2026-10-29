@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    INTERNET is alleen nodig voor sockets naar de telefoon van de partner op de eigen wifi (Sync.kt weigert alles
-    behalve privé-adressen). Er gaat niets naar een server of het internet.
+    INTERNET: het delen praat alleen met de partnertelefoon op de eigen wifi (Sync.kt weigert alles behalve
+    privé-adressen). Alleen de babyfoon gebruikt internet: ntfy voor de versleutelde signalering en WebRTC/TURN voor
+    beeld en geluid, end-to-end versleuteld met de partnercode.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
@@ -38,6 +46,11 @@
             android:name=".DelenService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
+
+        <service
+            android:name=".BabyfoonService"
+            android:exported="false"
+            android:foregroundServiceType="camera|microphone|mediaPlayback" />
 
         <receiver android:name=".Wekker" android:exported="false" />
 

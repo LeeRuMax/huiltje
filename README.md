@@ -28,6 +28,9 @@ partners sync phone-to-phone over home Wi-Fi with an end-to-end encrypted pairin
   WHO-lijnen.
 - **Week voor week**, **nachtstand** (zwart/amber, gedimd, grote knoppen) en een **widget** voor het beginscherm.
 - **Delen met je partner** via een partnercode, rechtstreeks tussen de telefoons op de wifi thuis.
+- **Babyfoon**: één gekoppelde telefoon is de camera, de andere kijkt en luistert mee en kan terugpraten (ingedrukt
+  houden). Alleen geluid kan ook. Huiltje luistert op de camera mee en de kijker krijgt een melding bij geluid of een
+  herkend geluidje, ook met het scherm uit. Wie camera is kies je per keer; meerdere kijkers kan.
 - **Backup** als zip (logboek + opnames); terugzetten voegt samen.
 
 Werkt het best voor 0 tot ongeveer 3 maanden; daarna verdwijnen de geluidjes langzaam. De app is Nederlandstalig.
@@ -39,8 +42,9 @@ Android 8 of nieuwer, arm64 (vrijwel alle telefoons van de laatste jaren).
 
 ## Privacy
 
-- De app heeft internettoegang alleen voor het delen met je partner: `Sync.kt` praat uitsluitend met adressen in
-  het eigen thuisnetwerk (privé-IP's) en weigert al het andere. Er is geen server en er gaat niets naar het internet.
+- Het **delen** praat uitsluitend met adressen in het eigen thuisnetwerk (privé-IP's, `Sync.kt`); daar is geen server.
+- Alleen de **babyfoon** gebruikt internet, en alleen als je hem aanzet. Zie hieronder; ook daar is alles versleuteld
+  van telefoon tot telefoon.
 - Opnames, logboek en bijgeleerde voorbeelden staan alleen op de telefoon (`Android/data/<app>/files/opnames/` en
   de app-database). Android-backup naar de cloud staat uit.
 - De backup-zip is niet versleuteld: bewaar hem op een plek die van jou is.
@@ -110,6 +114,18 @@ logregels staan in één tabel; elke wijziging krijgt een lokaal volgnummer en d
 een conflict wint de laatste wijziging; verwijderen is markeren. Beide telefoons moeten op hetzelfde netwerk zitten
 (een gastnetwerk dat apparaten van elkaar scheidt werkt niet); buiten de deur wordt bijgewerkt zodra je weer thuis
 bent. Android eist een stille melding ("Huiltje deelt") zolang de app op de achtergrond luistert.
+
+## Babyfoon (`Babyfoon.kt`)
+
+- **Beeld en geluid** via WebRTC (DTLS-SRTP). Op dezelfde wifi gaat alles rechtstreeks tussen de telefoons.
+- **Elkaar vinden** gaat via [ntfy](https://ntfy.sh): twee berichten per verbinding (offer/answer, zonder trickle-ICE),
+  op een topic dat van de partnercode is afgeleid en met AES-GCM versleuteld met de partnersleutel. De DTLS-vingerafdrukken
+  zitten in die versleutelde berichten, dus de ntfy-server of een relay kan niet meekijken of zich als de andere telefoon
+  voordoen. Berichten ouder dan 60 s of voor een ander toestel worden genegeerd. Standaard `https://ntfy.sh`; een eigen
+  server kan in Meer → 📡 Babyfoon-server.
+- **Buiten de deur** (4G, andere wifi) is meestal een **TURN-relay** nodig. Vul je eigen TURN-server in (bijv. coturn met
+  `lt-cred-mech`); de instellingen gaan via het delen naar je partner en zitten niet in de backup. Zonder TURN werkt de
+  babyfoon meestal alleen op dezelfde wifi.
 
 ## Bugs en ideeën
 

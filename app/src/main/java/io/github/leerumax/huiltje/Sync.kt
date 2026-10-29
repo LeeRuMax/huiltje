@@ -78,28 +78,37 @@ object Kanaal {
     private val rnd = SecureRandom()
     private val AAD = "huiltje1".toByteArray()
 
-    fun stuur(out: DataOutputStream, sleutel: ByteArray, o: JSONObject) {
+    /** nonce + AES-GCM(gzip(json)). Ook gebruikt voor de babyfoon-berichten via ntfy. */
+    fun dicht(sleutel: ByteArray, o: JSONObject): ByteArray {
         val bytes = ByteArrayOutputStream().also { b -> GZIPOutputStream(b).use { it.write(o.toString().toByteArray()) } }.toByteArray()
         val nonce = ByteArray(12).also(rnd::nextBytes)
         val c = Cipher.getInstance("AES/GCM/NoPadding")
         c.init(Cipher.ENCRYPT_MODE, SecretKeySpec(sleutel, "AES"), GCMParameterSpec(128, nonce))
         c.updateAAD(AAD)
-        val ct = c.doFinal(bytes)
-        out.writeInt(12 + ct.size)
-        out.write(nonce)
-        out.write(ct)
+        return nonce + c.doFinal(bytes)
+    }
+
+    /** Gooit bij een verkeerde sleutel of geknoei. */
+    fun open(sleutel: ByteArray, buf: ByteArray): JSONObject {
+        require(buf.size >= 29) { "te kort" }
+        val c = Cipher.getInstance("AES/GCM/NoPadding")
+        c.init(Cipher.DECRYPT_MODE, SecretKeySpec(sleutel, "AES"), GCMParameterSpec(128, buf, 0, 12))
+        c.updateAAD(AAD)
+        val plain = c.doFinal(buf, 12, buf.size - 12)
+        return JSONObject(GZIPInputStream(ByteArrayInputStream(plain)).readBytes().decodeToString())
+    }
+
+    fun stuur(out: DataOutputStream, sleutel: ByteArray, o: JSONObject) {
+        val b = dicht(sleutel, o)
+        out.writeInt(b.size)
+        out.write(b)
         out.flush()
     }
 
     fun lees(inp: DataInputStream, sleutel: ByteArray): JSONObject {
         val n = inp.readInt()
         require(n in 29..64_000_000) { "vreemde lengte" }
-        val buf = ByteArray(n).also(inp::readFully)
-        val c = Cipher.getInstance("AES/GCM/NoPadding")
-        c.init(Cipher.DECRYPT_MODE, SecretKeySpec(sleutel, "AES"), GCMParameterSpec(128, buf, 0, 12))
-        c.updateAAD(AAD)
-        val plain = c.doFinal(buf, 12, n - 12) // gooit bij een verkeerde sleutel of geknoei
-        return JSONObject(GZIPInputStream(ByteArrayInputStream(plain)).readBytes().decodeToString())
+        return open(sleutel, ByteArray(n).also(inp::readFully))
     }
 }
 
@@ -137,7 +146,7 @@ object Protocol {
     private fun wm(db: Db, dev: String?) = dev?.let { db.get("wm.$it")?.toLong() } ?: 0L
 }
 
-/** Alleen het eigen netwerk thuis: nooit iets naar of van een internetadres. */
+/** Delen: alleen het eigen netwerk thuis, nooit iets naar of van een internetadres. (De babyfoon is apart: Babyfoon.kt.) */
 fun privéAdres(a: InetAddress) = a.isSiteLocalAddress || a.isLinkLocalAddress || a.isLoopbackAddress
 
 object Delen {

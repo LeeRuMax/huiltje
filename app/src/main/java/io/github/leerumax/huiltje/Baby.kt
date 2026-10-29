@@ -52,6 +52,7 @@ object T {
     const val GROEI = "groei"
     const val AFSPRAAK = "afspraak"
     const val BABY = "baby"
+    const val SERVER = "server"
     fun deel(soort: String) = soort + "_deel"
 }
 

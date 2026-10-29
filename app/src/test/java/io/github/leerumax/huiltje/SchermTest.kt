@@ -95,6 +95,13 @@ class SchermTest {
     }
 
     @Test
+    fun babyfoonKeuze() {
+        val db = voorbeeld("uit")
+        rule.setContent { androidx.compose.material3.MaterialTheme(colorScheme = LICHT) { androidx.compose.material3.Surface { androidx.compose.foundation.layout.Column { BabyfoonScherm(db, db.alle()); ServerKaart(db, db.alle()) } } } }
+        foto("10-babyfoon")
+    }
+
+    @Test
     fun nacht() {
         val db = voorbeeld("aan")
         rule.setContent { App(db, mutableStateOf(null)) }
